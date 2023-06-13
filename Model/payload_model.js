@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 
 const payload_schema = new mongoose.Schema({
+    // _id:{
+    //     type: 'string',
+    //     unique : true,
+    //     required: [true, 'A data must have an ID'],
+    // },
     name:{
         type: 'string',
         required: [true, 'A user must have a name'],

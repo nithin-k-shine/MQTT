@@ -1,18 +1,30 @@
+const express = require('express');
+const app = express();
 const mqtt = require('mqtt');
 const payload = require('./Model/payload_model');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 dotenv.config({ path: './config.env' });
+const {v4 : uuidv4} = require('uuid');
+const  ObjectID = require('mongodb').ObjectId;
+const user_router = require('./Routes/user_routes');
+const payload_router = require('./Routes/payload_routes')
+const auth_router = require('./Routes/Auth_routes')
+var request = require('request');
+var cookies = require('cookie-parser');
+
+app.use(cookies());
+app.use(express.json());
+
+//Routes
+app.use('/',auth_router);
+app.use('/users', user_router);
+app.use('/payload',payload_router);
 
 // Connection variables
 let broker_host = '10.158.251.71';
 let broker_port = 1883;
 //let client_id = 'ys_client';
-
-mongoose.connect(process.env.DATABASE,{ 
-    useNewUrlParser: true, 
-    useUnifiedTopology: true 
-    });
 
 // Publish variables
 let pub_topic = '/test/version1/publish/';
@@ -33,18 +45,23 @@ const connection_options = {
 
 const client = mqtt.connect(connection_options);
 
-client.on('message', function (topic, message) {
+client.on('message', async function (topic, message) {
     json_message = JSON.parse(message.toString());
     console.log("Received message " + message.toString() + " on topic: " + topic.toString());
-    console.log(json_message);
-    const newdata = payload.create({
+    //const newId = uuidv4();
+    const newObjectId = new ObjectID();
+    const newdata = {
+        _id: newObjectId,
         name: json_message.name,
         age: json_message.age,
         surname: json_message.surname
-    });
+    };
+    request.post('http://127.0.0.1:3000/payload', newdata)
+    console.log(newdata);
     console.log("Data send to MongoDB")
 })
 
+//Establishing connection - Subscribing and Publishing
 client.on('connect', async function () {
     console.log('Connection successful');
     client.subscribe(sub_topic, sub_options, function (err) {
@@ -84,3 +101,5 @@ client.on("reconnect", function () {
 client.on("offline", function () {
     console.log("Currently offline. Please check internet!");
 });
+
+module.exports = app;
