@@ -1,12 +1,12 @@
-const mongoose = require('mongoose');
-const app = require('./app');
-const dotenv = require('dotenv');
+const mongoose = require("mongoose");
+const app = require("./app");
+const dotenv = require("dotenv");
 dotenv.config({ path: `./config.env` });
 
 //MongoDB database
 const DB = process.env.DATABASE;
 mongoose.connect(DB, {
-    useNewUrlParser: true
+  useNewUrlParser: true,
 });
 
 //Server
